@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "WSWUzlfY9Onk45pys2Kf9ES8+KZBBdIobURxdxdH19ci/v+JvlHwRX6nKba5d0DwL8Lyas5UGBTxEZdyY2PjFA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ASUS\\Documents\\C#\\Hilbert Curve\\Hilbert Curve\\Hilbert Curve.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ASUS\\.nuget\\packages\\grasshopper\\7.13.21348.13001\\grasshopper.7.13.21348.13001.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\rhinocommon\\7.13.21348.13001\\rhinocommon.7.13.21348.13001.nupkg.sha512"
+  ],
+  "logs": []
+}
