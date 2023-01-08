@@ -1,8 +1,11 @@
+using Eto.Forms;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Security.Policy;
 
 namespace Hilbert_Curve
 {
@@ -49,7 +52,7 @@ namespace Hilbert_Curve
             // Output Number: 4
             pManager.AddIntegerParameter("Number of Segments", "Number Of Segments", "The number of segments that will make up the hilbert curve.", GH_ParamAccess.item);
             // Output Number: 5
-            pManager.AddIntegerParameter("Segment Length", "Segment Length", "The length of each segment that will make up the hilbert curve.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Segment Length", "Segment Length", "The length of each segment that will make up the hilbert curve.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -74,16 +77,16 @@ namespace Hilbert_Curve
                 this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value higher or equal to 1 for the Hilbert Order input!\nThe value has been set to 1.");
                 hilbertOrder = 1;
             }
-            // Ensure hilbert order is not larger than 32 to avoid an integer overflow 
-            if (hilbertOrder > 32)
+            // Ensure hilbert order is not larger than 12 to avoid grasshopper exceeding grasshopper's supported range for arrays.
+            if (hilbertOrder > 12)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value lower or equal to than 32.\nThe value has been set to 32.");
-                hilbertOrder = 32;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value lower or equal to 12.\nThe value has been set to 12.");
+                hilbertOrder = 12;
             }
-            // Ensure hilbert edge length is a positive double
-            if (edgeLength < double.Epsilon)
+            // Ensure hilbert edge length is larger or equal to 1.0
+            if (edgeLength < 1.0 - double.Epsilon)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value higher than 0 for the Edge Length input!\nThe value has been set to 1.0.");
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value higher or equal to 1.0 for the Edge Length input!\nThe value has been set to 1.0.");
                 edgeLength = 1.0;
             }
 
@@ -113,7 +116,7 @@ namespace Hilbert_Curve
             DA.SetData(2, numberOfColumns);
             DA.SetData(3, numberOfPoints);
             DA.SetData(4, numberOfSegments);
-            DA.SetData(4, segmentLength);
+            DA.SetData(5, segmentLength);
         }
 
 
@@ -158,13 +161,16 @@ namespace Hilbert_Curve
         /// The quadrant is determined by the two least significant bits of the point index which indicate the quadrant it lies in.<br/>    
         /// The point will be transformed according to which quadrant it belongs in.<br/>
         /// NOTE:   The quadrants are in the order of the 1st order hilbert curve and NOT in the conventional order of cartesian plane!<br/>
-        /// This is done to ensure that the hilbert curve starts from the bottom left (towards the origin) and expands in the +X and +Y direction.
+        /// This is done to ensure that the hilbert curve starts from the bottom left(towards the origin) and expands in the +X and +Y direction.
+        /// 
         /// </summary>
         /// <param name="pointIndex">The index of the point for which the coordiates will be calculated.</param>
         /// <param name="subdivisionsToMove">The number of subdivisions that will be used to move the point during translations.</param>
-        /// <param name="segmentLength">The distance between each point within the hilbert curve and therefore of each segment.</param>
+        /// <param name="currentPoint">Pointer to the Point3d to modify.</param>
 
-        /*
+
+        /* 
+         * 
          *      2nd Quadrant        |   3rd Quadrant
          *      Case: 1 -> 0b01     |   Case: 2 -> 0b10   
          *  ________________________|_____________________
