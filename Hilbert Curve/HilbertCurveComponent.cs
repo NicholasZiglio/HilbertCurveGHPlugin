@@ -71,8 +71,14 @@ namespace Hilbert_Curve
             // Ensure hilbert order is a positive integer
             if (hilbertOrder < 1)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value higher than 1 for the Hilbert Order input!\nThe value has been set to 1.");
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value higher or equal to 1 for the Hilbert Order input!\nThe value has been set to 1.");
                 hilbertOrder = 1;
+            }
+            // Ensure hilbert order is not larger than 32 to avoid an integer overflow 
+            if (hilbertOrder > 32)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "You must provide a value lower or equal to than 32.\nThe value has been set to 32.");
+                hilbertOrder = 32;
             }
             // Ensure hilbert edge length is a positive double
             if (edgeLength < double.Epsilon)
@@ -94,8 +100,8 @@ namespace Hilbert_Curve
             Polyline hilbertCurve = new Polyline(numberOfPoints);
 
 
-            // Calculate hilbert curve coordinates for each point
-            for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
+            // Calculate hilbert curve coordinates for each point using uint index to avoid 
+            for (uint pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
             {
                 hilbertCurve.Add(calculateCoordinatesOnHilbertCurve(pointIndex, hilbertOrder, segmentLength));
             }
@@ -119,7 +125,7 @@ namespace Hilbert_Curve
         /// <param name="pointIndex">The index of the point for which the coordiates will be calculated.</param>
         /// <param name="hilbertOrder">The number of subdivisions within the hilbert curve. Also refered to as level, depth, iterations.</param>
         /// <param name="segmentLength">The distance between each point within the hilbert curve and therefore of each segment.</param>
-        private Point3d calculateCoordinatesOnHilbertCurve(int pointIndex, int hilbertOrder, double segmentLength)
+        private Point3d calculateCoordinatesOnHilbertCurve(uint pointIndex, int hilbertOrder, double segmentLength)
         {
             // Point from which calculation begins.
             Point3d currentPoint = new Point3d(0, 0, 0);
@@ -166,7 +172,7 @@ namespace Hilbert_Curve
          *      1st Quadrant        |   4th Quadrant      
          *      Case: 0 -> 0b00     |   Case: 3 -> 0b11    
          */
-        private void TransformToCurrentQuadrant(int pointIndex, double subdivisionsToMove, ref Point3d currentPoint)
+        private void TransformToCurrentQuadrant(uint pointIndex, double subdivisionsToMove, ref Point3d currentPoint)
         {
             // Check the first two least significant bits of point index to see in which quadrant the current point is in for the current order.
             switch (pointIndex & 3)
